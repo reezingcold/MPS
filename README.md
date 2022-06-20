@@ -19,9 +19,9 @@ efficiently saved and calculated via MPS.
 We first write the Hamitonian in the form of matrix product operators(MPO), after which the ground state search algorithm 
 can be applied. Here is a simple example. 
 ```python
-from mps import MPS
-from hamiltonians import HeisenbergH
-from ground_search import vFindGS
+from MPSpackage.mps import MPS
+from MPSpackage.hamiltonians import HeisenbergH
+from MPSpackage.ground_search import vFindGS
 
 N = 10 # site number or qubit number
 Jx, Jy, Jz = 2, -8, 2 # parameters in Hamiltonian
