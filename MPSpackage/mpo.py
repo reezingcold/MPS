@@ -1,5 +1,4 @@
 '''
-author: liu leiyinan
 create date: 2021/12/21
 last change: 2021/12/21
 introducion: this package is created for the construction of MPO
