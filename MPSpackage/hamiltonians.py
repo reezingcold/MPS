@@ -1,5 +1,4 @@
 '''
-author: liu leiyinan
 create date: 2021/12/6
 last change: 2021/12/21
 introducion: this package is created for saving Hamiltonians 
@@ -147,7 +146,3 @@ class SuperConductingH(MPO):
         # last tensor is (wn, sigma-, sigma+, sigma+, sigma-, I)^T
         H.append(np.array([w_j*n(), lowering(), raising(), raising(), lowering(), eye()]))
         return H
-
-        
-        
-
