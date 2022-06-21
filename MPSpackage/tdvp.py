@@ -1,5 +1,4 @@
 '''
-author: liu leiyinan
 create date: 2022/05/02
 last change: 2022/06/20
 introducion: this package is created for time evolution via TDVP method.
