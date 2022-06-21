@@ -1,5 +1,4 @@
 '''
-author: liu leiyinan
 create date: 2022/3/21
 last change: 2022/3/21
 introducion: this package is created for calculate the time evolution of a given initial state
@@ -70,4 +69,3 @@ class TimeEvolution(object):
 
         self.current_time = t+dt
         self.current_state = new_state
-        
