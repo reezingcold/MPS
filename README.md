@@ -82,7 +82,7 @@ dt = T/n
 N = 7
 Jx, Jy, Jz = 0.1, -1, 0.7
 
-# create an product state |00000000> as initial state
+# create an product state |0000000> as initial state
 mps_init = MPS(N, bond_D = 8)
 mps_init.replace(np.array([[1],[0]]), 0)
 for i in range(1, N-1):
@@ -113,7 +113,7 @@ plt.xlabel(r"time")
 plt.legend()
 plt.show()
 ```
-The above code calculates the time evolution of a quantum Heisenberg system with initial state being $|00000000\rangle$.
+The above code calculates the time evolution of a quantum Heisenberg system with initial state being $|0000000\rangle$.
 
 # Reference
 * The first paper about DMRG algorithm by S. R. White: [Density matrix formulation for quantum renormalization groups](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.69.2863)
