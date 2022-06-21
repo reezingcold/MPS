@@ -1,12 +1,3 @@
-'''
-author: liu leiyinan
-create date: 2022/6/6
-last change: 
-introducion: this package is created for calculating ground state and energy
-             of a given Hamiltonian based on MPS and MPO. There are huge improvements 
-             compared to "ground_energy.py"
-'''
-
 import numpy as np
 from numpy import linalg
 from .mps import MPS
