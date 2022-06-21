@@ -1,5 +1,4 @@
 '''
-author: liu leiyinan
 create date: 2022/3/21
 last change: 2022/3/21
 introducion: some useful functions for calculating in MPS form
@@ -198,5 +197,3 @@ def getEntropy(mps: MPS, bond_site: int):
     for s in S:
         entropy += -(s**2)*np.log2(s**2)
     return entropy
-
-
