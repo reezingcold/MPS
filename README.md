@@ -36,8 +36,10 @@ where $J_x=2, J_y=-8, J_z=2$, and the qubit(site) number $N = 10$.
 
 The `gs_energy` is the ground state energy and `gs` is the ground state in the form of MPS.
 ## Time evolution
-Dynamics of a quantum system is also where we are interested. However, it usually very difficult 
-to solve the time evolution of the quantum system, even in the language of tensor network state. 
+Dynamics of a quantum system is also where we are interested. However, it is usually very difficult 
+to solve the time evolution of the quantum system, even in the language of tensor network state, especially 
+in the case of a quantum quench. 
+
 Here, we realize two algorithms of evolving a quantum system. 
 ### MPO time evolution
 The idea of this method is rather naive. We just do the what the following equation tells
