@@ -45,6 +45,9 @@ Here, we realize two algorithms of evolving a quantum system.
 The idea of this method is rather naive. We just do the what the following equation tells
 $$|\psi(t+\delta t)\rangle = e^{-iH\delta t}|\psi(t)\rangle\approx(1-iH\delta t)|\psi(t)\rangle$$
 The basic procedure is exactly what you are thinking.
+
+![MPOtimeevo](https://github.com/reezingcold/MPS/blob/main/pics/MPOtimeevo.png)
+
 * Apply MPO on the MPS with being multiplied by $-i\delta t$
 * Add two MPS $|\psi(t)\rangle+(-i\delta t)H|\psi\rangle$
 * Do SVD to reduce the bond dimension. (neglecting small singular values)
@@ -53,9 +56,11 @@ The cost of the simplicity of this method is its accuracy. The MPO time evolutio
 time segment $\delta t$ to reach high accuracy, which is not efficient in most cases.
 
 ### TDVP method
-TDVP stands for time dependent variational principle. The idea of this this method is 
+<img src="https://github.com/reezingcold/MPS/blob/main/pics/tdvp.png" width="50%">
+TDVP stands for time dependent variational principle. The idea of this method is 
 to evolve the given MPS with its bond dimension fixed. This method straightfowardly propose the 
 time evolution equation of a MPS when bond dimension is fixed.
+
 $$i\frac{\mathrm{d}|\psi\rangle}{\mathrm{d}t} = \mathcal{P}\hat{H}|\psi\rangle$$
 The above equation is the TDVP equation. $\mathcal{P}$ is the projector to the manifold of fixed bond dimension.
 
@@ -115,7 +120,8 @@ plt.xlabel(r"time")
 plt.legend()
 plt.show()
 ```
-The above code calculates the time evolution of a quantum Heisenberg system with initial state being $|0000000\rangle$.
+The above code calculates the time evolution of a quantum Heisenberg system with initial state being $|0000000\rangle$. 
+The result is shown below.
 
 # Reference
 * The first paper about DMRG algorithm by S. R. White: [Density matrix formulation for quantum renormalization groups](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.69.2863)
