@@ -164,7 +164,7 @@ plt.show()
 ```
 The above code calculates the time evolution of a quantum Heisenberg system with initial state being $|0\rangle^{\otimes 8}$. 
 The result is shown below.
-![tdvptimeevoresult](https://github.com/reezingcold/MPS/blob/main/pics/tdvp_result.pdf)
+![tdvptimeevoresult](https://github.com/reezingcold/MPS/blob/main/pics/tdvp_result.png)
 # Reference
 * The first paper about DMRG algorithm by S. R. White: [Density matrix formulation for quantum renormalization groups](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.69.2863)
 * Matrix product states paper by G. Vidal: [Efficient classical simulation of slightly entangled quantum computations](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.91.147902)
