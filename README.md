@@ -19,9 +19,9 @@ efficiently saved and calculated via MPS.
 We first write the Hamitonian in the form of matrix product operators(MPO), after which the ground state search algorithm 
 can be applied. Here is a simple example. 
 ```python
-from MPSpackage.mps import MPS
-from MPSpackage.hamiltonians import HeisenbergH
-from MPSpackage.ground_search import vFindGS
+from mps.mps import MPS
+from mps.hamiltonians import HeisenbergH
+from mps.ground_search import vFindGS
 
 N = 10 # site number or qubit number
 Jx, Jy, Jz = 2, -8, 2 # parameters in Hamiltonian
@@ -58,7 +58,7 @@ time segment $\delta t$ to reach high accuracy, which is not efficient in most c
 ### TDVP method
 <img src="https://github.com/reezingcold/MPS/blob/main/pics/tdvp.png" width="50%">
 TDVP stands for time dependent variational principle. The idea of this method is 
-to evolve the given MPS with its bond dimension fixed. This method straightfowardly propose the 
+to evolve the given MPS with its bond dimension fixed. This method straightfowardly proposes the 
 time evolution equation of a MPS when bond dimension is fixed.
 
 $$i\frac{\mathrm{d}|\psi\rangle}{\mathrm{d}t} = \mathcal{P}\hat{H}|\psi\rangle$$
@@ -74,22 +74,64 @@ neighbouring site tensors together.
 In most cases, the two site TDVP method can give more accurate result comparing to 
 MPO time evolution method before the one site TDVP is implemented.
 
-Here is a simple time evolution of the Heisenberg system.
+Here is a simple example of the time evolution of Heisenberg system.
 ```python
-from MPSpackage.mps import MPS
-from MPSpackage.mps_functions import multiply
-from MPSpackage.hamiltonians import HeisenbergH
-from MPSpackage.tdvp import oneTDVP, twoTDVP
-import matplotlib.pyplot as plt
 import numpy as np
+import qutip as qt
+from mps.mps import MPS
+from mps.mps_functions import multiply
+from mps.hamiltonians import HeisenbergH
+import matplotlib.pyplot as plt
+from mps.tdvp import oneTDVP, twoTDVP
 
 T = 10
 n = 1000
 dt = T/n
-N = 7
-Jx, Jy, Jz = 0.1, -1, 0.7
 
-# create an product state |0000000> as initial state
+# Heisenberg model
+N = 8
+Jx = 0.9
+Jy = -0.5
+Jz = 0.6
+
+# Hamiltonian, matrix form
+Hz = 0
+for i in range(N-1):
+    cup=[qt.qeye(2)]*N
+    cup[i],cup[i+1]=qt.sigmaz(),qt.sigmaz()
+    Hz+=qt.tensor(cup)
+
+Hx = 0
+for j in range(N-1):
+    cup=[qt.qeye(2)]*N
+    cup[j],cup[j+1]=qt.sigmax(),qt.sigmax()
+    Hx+=qt.tensor(cup)
+
+Hy = 0
+for k in range(N-1):
+    cup=[qt.qeye(2)]*N
+    cup[k],cup[k+1]=qt.sigmay(),qt.sigmay()
+    Hy+=qt.tensor(cup)
+
+H = Jx*Hx+Jy*Hy+Jz*Hz
+
+# initial state
+zero = qt.basis(2, 0)
+one = qt.basis(2, 1)
+
+initial_state = qt.tensor([zero]*N)
+ed_result = []
+state = initial_state
+ed_result.append(abs((initial_state.dag()*state)[0][0][0])**2)
+# time evolution for state vector
+for i in range(0, n):
+    state = (-1j*H*dt).expm()*state
+    ed_result.append(abs((initial_state.dag()*state)[0][0][0])**2)
+    print(i)
+
+plt.plot(np.linspace(0,T,n+1), ed_result, color = 'orangered', label = "exact diagonalization result")
+
+# create an initial state in mps form
 mps_init = MPS(N, bond_D = 8)
 mps_init.replace(np.array([[1],[0]]), 0)
 for i in range(1, N-1):
@@ -97,30 +139,30 @@ for i in range(1, N-1):
 mps_init.replace(np.array([[1, 0]]) ,N-1)
 mps_init.update()
 
-# Hamiltonian
+# mpo Hamiltonian of Heisenberg model
 def Ham(t):
     return HeisenbergH(N, Jx, Jy, Jz)
 
-fidelity = []
-# two TDVP evolving
-timeevo = twoTDVP(mps_init, Ham, 0, dt, 16)
-for t in range(0, 3):
-    fidelity.append(abs(multiply(mps_init.dag(), timeevo.current_state))**2)
+mps_result = []
+
+# time evolution for mps
+timeevo = twoTDVP(mps_init, Ham, 0, dt, 32)
+for t in range(0, 4):
+    mps_result.append(abs(multiply(mps_init.dag(), timeevo.current_state))**2)
     timeevo.evolve_a_step()
-
-# one TDVP evolving
 timeevo2 = oneTDVP(timeevo.current_state, Ham, 3*dt, dt)
-for t in range(3, n+1):
-    fidelity.append(abs(multiply(mps_init.dag(), timeevo2.current_state))**2)
+for tt in range(4, n+1):
+    mps_result.append(abs(multiply(mps_init.dag(), timeevo2.current_state))**2)
     timeevo2.evolve_a_step()
+    print(tt)
 
-plt.scatter(np.linspace(0,T,n+1), fidelity, label = "MPS time evolution")
+plt.scatter(np.linspace(0, T, n+1), mps_result, label = "TDVP result", marker='.')
 plt.ylabel(r"$|\langle \psi(0)|\psi(t)\rangle|^2$")
 plt.xlabel(r"time")
 plt.legend()
 plt.show()
 ```
-The above code calculates the time evolution of a quantum Heisenberg system with initial state being $|0000000\rangle$. 
+The above code calculates the time evolution of a quantum Heisenberg system with initial state being $|0\rangle^{\otimes 8}$. 
 The result is shown below.
 ![tdvptimeevoresult](https://github.com/reezingcold/MPS/blob/main/pics/tdvp_result.png)
 # Reference
