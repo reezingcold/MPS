@@ -21,18 +21,21 @@ can be applied. Here is a simple example.
 ```python
 from mps.mps import MPS
 from mps.hamiltonians import HeisenbergH
-from mps.ground_search import vFindGS
+from mps.dmrg import oneDMRG
 
-N = 10 # site number or qubit number
-Jx, Jy, Jz = 2, -8, 2 # parameters in Hamiltonian
+N = 20 # site number or qubit number
+Jx, Jy, Jz = 1, -1, 1 # parameters in Hamiltonian
 bond_dim_max = 8 # bond dimension constraint
-gs_search = vFindGS(MPS(N, bond_dim_max), HeisenbergH(N, Jx, Jy, Jz), max_iter = 20, delta_E = 1e-4)
-gs_search.sweep()
-gs_energy, gs = gs_search.result
+predict_state = MPS(N, bond_dim_max) # initial state
+H = HeisenbergH(N, Jx, Jy, Jz) # model Hamiltonian
+gs_search = oneDMRG(predict_state, H, max_iter = 20, delta_E = 1e-4)
+gs_search.sweep() # run DMRG
+gs_energy, gs = gs_search.result # get result
+print(gs_energy)
 ```
 The above code is to find the ground state and ground energy of the Heisenberg Hamiltonian:
 $$\hat{H} = J_x\sum_{i=1}^N\sigma^x_i\sigma^x_{i+1}+J_y\sum_{i=1}^N\sigma^y_i\sigma^y_{i+1}+J_z\sum_{i=1}^N\sigma^z_i\sigma^z_{i+1}$$
-where $J_x=2, J_y=-8, J_z=2$, and the qubit(site) number $N = 10$.
+where $J_x=1, J_y=-1, J_z=1$, and the qubit(site) number $N = 20$.
 
 The `gs_energy` is the ground state energy and `gs` is the ground state in the form of MPS.
 ## Time evolution
@@ -74,95 +77,71 @@ neighbouring site tensors together.
 In most cases, the two site TDVP method can give more accurate result comparing to 
 MPO time evolution method before the one site TDVP is implemented.
 
-Here is a simple example of the time evolution of Heisenberg system.
+Here is a simple example of the time evolution of the PXP model.
+The PXP model Hamiltonian reads
+
+$$ \hat{H} = \sum_{i}\hat{P}_{i-1}\hat{X}_i \hat{P}_{i+1} $$
+
+where $\hat{P} = |0\rangle\langle 0|$ is a projector and $\hat{X} = |0\rangle\langle 1|+|1\rangle\langle0|$ is simply 
+the Pauli X matrix.
+The PXP model reveals quantum many-body scars, which can be clearly seen in the revival of Loschmidt echo defined by
+$$g(t) = |\langle\mathbb{Z}_2|e^{-iHt}|\mathbb{Z}_2\rangle|^2$$
+where $|\mathbb{Z}_2\rangle$ is the Neel state:
+$$|\mathbb{Z}_2\rangle = |10101010\cdots\rangle$$
 ```python
-import numpy as np
-import qutip as qt
 from mps.mps import MPS
-from mps.mps_functions import multiply
-from mps.hamiltonians import HeisenbergH
+from mps.hamiltonians import PXPH
+from mps.mps_functions import multiply, getEntropy
+from mps.tdvp import tdvp
+import numpy as np
 import matplotlib.pyplot as plt
-from mps.tdvp import oneTDVP, twoTDVP
 
-T = 10
-n = 1000
-dt = T/n
+def create_mps(initial_state: str)->MPS:
+    temp = 'cb' + ''.join(['1' if x == '0' else '0' for x in initial_state])
+    return MPS(len(initial_state), initial=temp)
 
-# Heisenberg model
-N = 8
-Jx = 0.9
-Jy = -0.5
-Jz = 0.6
+N = 16
+T, Tn = 30, 300
+dt = T/Tn
+t = np.linspace(0, T, Tn+1)
+bonddim = 32
 
-# Hamiltonian, matrix form
-Hz = 0
-for i in range(N-1):
-    cup=[qt.qeye(2)]*N
-    cup[i],cup[i+1]=qt.sigmaz(),qt.sigmaz()
-    Hz+=qt.tensor(cup)
+mpsi0 = create_mps('10'*(N//2))
+mpoH = PXPH(N)
 
-Hx = 0
-for j in range(N-1):
-    cup=[qt.qeye(2)]*N
-    cup[j],cup[j+1]=qt.sigmax(),qt.sigmax()
-    Hx+=qt.tensor(cup)
+evo_params = {"t0": 0, "dt": 0.1, "use_lanczos": True, "to_normalize": False, 
+              "bond_D": bonddim, "cut_off": 1.e-10, "switch_step": 10, "lanczos_dim": 4}
 
-Hy = 0
-for k in range(N-1):
-    cup=[qt.qeye(2)]*N
-    cup[k],cup[k+1]=qt.sigmay(),qt.sigmay()
-    Hy+=qt.tensor(cup)
+tdvp_engine = tdvp(mpsi0, lambda x: mpoH, evo_params, True)
+echolst = [1]*(Tn+1)
+entrolst = [0]*(Tn+1)
+for i in range(1, Tn+1):
+    tdvp_engine.run()
+    echolst[i] = abs(multiply(mpsi0.dag(), tdvp_engine.current_state))**2
+    entrolst[i] = getEntropy(tdvp_engine.current_state, N//2-1)
 
-H = Jx*Hx+Jy*Hy+Jz*Hz
+plt.rcParams.update({
+    "text.usetex": True,
+    "font.family": "Helvetica"
+})
 
-# initial state
-zero = qt.basis(2, 0)
-one = qt.basis(2, 1)
-
-initial_state = qt.tensor([zero]*N)
-ed_result = []
-state = initial_state
-ed_result.append(abs((initial_state.dag()*state)[0][0][0])**2)
-# time evolution for state vector
-for i in range(0, n):
-    state = (-1j*H*dt).expm()*state
-    ed_result.append(abs((initial_state.dag()*state)[0][0][0])**2)
-    print(i)
-
-plt.plot(np.linspace(0,T,n+1), ed_result, color = 'orangered', label = "exact diagonalization result")
-
-# create an initial state in mps form
-mps_init = MPS(N, bond_D = 8)
-mps_init.replace(np.array([[1],[0]]), 0)
-for i in range(1, N-1):
-    mps_init.replace(np.array([[[1],[0]]]), i)
-mps_init.replace(np.array([[1, 0]]) ,N-1)
-mps_init.update()
-
-# mpo Hamiltonian of Heisenberg model
-def Ham(t):
-    return HeisenbergH(N, Jx, Jy, Jz)
-
-mps_result = []
-
-# time evolution for mps
-timeevo = twoTDVP(mps_init, Ham, 0, dt, 32)
-for t in range(0, 4):
-    mps_result.append(abs(multiply(mps_init.dag(), timeevo.current_state))**2)
-    timeevo.evolve_a_step()
-timeevo2 = oneTDVP(timeevo.current_state, Ham, 3*dt, dt)
-for tt in range(4, n+1):
-    mps_result.append(abs(multiply(mps_init.dag(), timeevo2.current_state))**2)
-    timeevo2.evolve_a_step()
-    print(tt)
-
-plt.scatter(np.linspace(0, T, n+1), mps_result, label = "TDVP result", marker='.')
-plt.ylabel(r"$|\langle \psi(0)|\psi(t)\rangle|^2$")
-plt.xlabel(r"time")
-plt.legend()
+fig, ax1 = plt.subplots(figsize = (7, 5))
+ax1.set_xlabel(r"$\mathrm{time}$", fontsize = 15)
+ax1.set_ylabel(r'$\mathrm{Echo}$', color = 'tab:blue', fontsize = 15)
+ax1.plot(t, echolst, label = 'echo')
+ax2 = ax1.twinx()
+ax2.set_ylabel(r'$\mathrm{Entropy}$', color = 'tab:orange', fontsize = 15)
+ax2.plot(t, entrolst, label = 'entropy', color = 'tab:orange')
+ax1.set_ylim(0, 1)
+ax1.set_xlim(0, T)
+ax2.set_ylim(0, 3)
+ax1.grid(ls = '--')
+ax1.tick_params(labelsize = 15)
+ax2.tick_params(labelsize = 15)
+plt.savefig("PXP16.pdf")
 plt.show()
 ```
-The above code calculates the time evolution of a quantum Heisenberg system with initial state being $|0\rangle^{\otimes 8}$. 
+The above code calculates the time evolution of a quantum Heisenberg system with initial state being $|1010\cdots\rangle$. 
 The result is shown below.
 ![tdvptimeevoresult](https://github.com/reezingcold/MPS/blob/main/pics/tdvp_result.png)
 # Reference
