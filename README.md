@@ -141,12 +141,14 @@ ax2.tick_params(labelsize = 15)
 plt.savefig("PXP16.pdf")
 plt.show()
 ```
-The above code calculates the time evolution of a quantum Heisenberg system with initial state being $|1010\cdots\rangle$. 
+The above code calculates the time evolution of the PXP model with initial state being $|1010\cdots\rangle$ with 
+16 qubits in total.
 The result is shown below.
-![tdvptimeevoresult](https://github.com/reezingcold/MPS/blob/main/pics/tdvp_result.png)
+![tdvptimeevoresult](https://github.com/reezingcold/MPS/blob/main/pics/pxp16.png)
 # Reference
 * The first paper about DMRG algorithm by S. R. White: [Density matrix formulation for quantum renormalization groups](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.69.2863)
 * Matrix product states paper by G. Vidal: [Efficient classical simulation of slightly entangled quantum computations](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.91.147902)
 * TDVP time evolution paper by Jutho Haegeman, et al.: [Time-dependent variational principle for quantum lattices](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.107.070601)
 * Detailed one/two site TDVP algorithm paper by Jutho Haegeman, et al.: [Unifying time evolution and optimization with matrix product states](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.94.165116)
 * Review of matrix product states and relative algorithms by Ulrich Schollwock: [The density-matrix renormalization group in the age of matrix product states](https://www.sciencedirect.com/science/article/abs/pii/S0003491610001752?via%3Dihub)
+* PXP model introduction: [Quantum scarred eigenstates in a Rydberg atom chain: entanglement, breakdown of thermalization, and stability to perturbations](https://arxiv.org/pdf/1806.10933.pdf)
